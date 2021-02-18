@@ -1,0 +1,96 @@
+# -----------------------------------------------------------------------------------------
+# Processing SST-SST pairs
+
+export JOB_screen_pairs=`sbatch --account=huybers_lab  -J LME_screen_pairs  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1-165  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID;LME_Step_07_SST_step_02_screen_ship_pairs_day_night;quit;">>logs/log_SST_02' | egrep -o -e "\b[0-9]+$"`
+echo JOB_screen_pairs  ID $JOB_screen_pairs
+
+
+export JOB_sum_SST_day=`sbatch --account=huybers_lab  -J LME_sum_SST  -t 10080 -p huce_intel -n 1  --mem-per-cpu=80000  --dependency=afterok:${JOB_screen_pairs} -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "do_day = 1; LME_Step_07_SST_step_03_sum_ship_pairs;quit;">>logs/log_SST_03' | egrep -o -e "\b[0-9]+$"`
+echo JOB_sum_SST_day  ID $JOB_sum_SST_day
+
+export JOB_sum_SST_night=`sbatch --account=huybers_lab  -J LME_sum_SST  -t 10080 -p huce_intel -n 1  --mem-per-cpu=80000  --dependency=afterok:${JOB_screen_pairs} -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "do_day = 0; LME_Step_07_SST_step_03_sum_ship_pairs;quit;">>logs/log_SST_03' | egrep -o -e "\b[0-9]+$"`
+echo JOB_sum_SST_night  ID $JOB_sum_SST_night
+
+
+# -----------------------------------------------------------------------------------------
+# LME analysis
+
+export JOB_LME_day=`sbatch --account=huybers_lab  -J LME_LME  -t 10080 -p huce_bigmem -n 1  --mem-per-cpu=250000  --dependency=afterok:${JOB_sum_SST_day}. --array=1-12  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; do_day = 0; LME_Step_06_LME_Ship_regional_monthly;quit;">>logs/log_SST_03'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_LME  ID $JOB_LME
+
+export JOB_LME_night=`sbatch --account=huybers_lab  -J LME_LME  -t 10080 -p huce_bigmem -n 1  --mem-per-cpu=250000  --dependency=afterok:${JOB_sum_SST_night}  --array=1-12  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; do_day = 1; LME_Step_06_LME_Ship_regional_monthly;quit;">>logs/log_SST_03'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_LME  ID $JOB_LME
+
+
+# -----------------------------------------------------------------------------------------
+# Corrections - daytime
+
+export JOB_corr_full_day=`sbatch --account=huybers_lab  -J JOB_corr_full  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.do_nighttime_LME = 1; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_full'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_full_day  ID $JOB_corr_full_day
+
+export JOB_corr_bck_day=`sbatch --account=huybers_lab  -J JOB_corr_bck  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.only_correct = 0; P.do_nighttime_LME = 1; P.exp_bck_id = 3; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_bck'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_bck_day  ID $JOB_corr_bck_day
+
+export JOB_corr_bck_no_day=`sbatch --account=huybers_lab  -J JOB_corr_bck  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.only_correct = 0; P.do_nighttime_LME = 1; P.exp_bck_id = 4; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_bck'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_bck_no_day  ID $JOB_corr_bck_no_day
+
+export JOB_corr_eri_day=`sbatch --account=huybers_lab  -J JOB_corr_eri  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.only_correct = 1; P.do_nighttime_LME = 1; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_eri'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_eri_day  ID $JOB_corr_eri_day
+
+export JOB_corr_idv_day=`sbatch --account=huybers_lab  -J JOB_corr_idv  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=2-506  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.do_nighttime_LME = 1; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_idv'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_idv_day  ID $JOB_corr_idv_day
+
+export JOB_corr_rnd_day=`sbatch --account=huybers_lab  -J JOB_corr_rnd  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=1-1000  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 0; P.do_nighttime_LME = 1; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_rnd'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_rnd_day  ID $JOB_corr_rnd_day
+
+
+
+# for random correction of bucket and eri only --- Jul. 8, 2020
+export JOB_corr_rnd_bck_day=`sbatch --account=huybers_lab  -J JOB_corr_bck_rnd_day  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=1-1000  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 0; P.only_correct = 0; P.do_nighttime_LME = 1; P.do_day = 1; P.exp_bck_id = 4; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_rnd_bck'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_rnd_bck_day  ID $JOB_corr_rnd_bck_day
+
+
+export JOB_corr_rnd_eri_day=`sbatch --account=huybers_lab  -J JOB_corr_eri_rnd_day  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=1-1000  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 0; P.only_correct = 1; P.do_nighttime_LME = 1; P.do_day = 1; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_rnd_eri'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_rnd_eri_day  ID $JOB_corr_rnd_eri_day
+
+
+# -----------------------------------------------------------------------------------------
+# Corrections - nighttime
+
+export JOB_corr_full_night=`sbatch --account=huybers_lab  -J JOB_corr_full  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.do_nighttime_LME = 1; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_full'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_full_night  ID $JOB_corr_full_night
+
+export JOB_corr_bck_night=`sbatch --account=huybers_lab  -J JOB_corr_bck  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.only_correct = 0; P.do_nighttime_LME = 1; P.exp_bck_id = 3; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_bck'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_bck_night  ID $JOB_corr_bck_night
+
+export JOB_corr_bck_no_night=`sbatch --account=huybers_lab  -J JOB_corr_bck  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.only_correct = 0; P.do_nighttime_LME = 1; P.exp_bck_id = 4; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_bck'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_bck_no_night  ID $JOB_corr_bck_no_night
+
+export JOB_corr_eri_night=`sbatch --account=huybers_lab  -J JOB_corr_eri  -t 10080 -p huce_intel -n 1  --mem-per-cpu=20000  --array=1  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.only_correct = 1; P.do_nighttime_LME = 1; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_eri'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_eri_night  ID $JOB_corr_eri_night
+
+export JOB_corr_idv_night=`sbatch --account=huybers_lab  -J JOB_corr_idv  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=2-454  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 1; P.do_nighttime_LME = 1; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_idv'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_idv_night  ID $JOB_corr_idv_night
+
+export JOB_corr_rnd_night=`sbatch --account=huybers_lab  -J JOB_corr_rnd  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=1-1000  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 0; P.do_nighttime_LME = 1; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_rnd'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_rnd_night  ID $JOB_corr_rnd_night
+
+
+
+# for random correction of bucket and eri only --- Jul. 8, 2020
+export JOB_corr_rnd_bck_night=`sbatch --account=huybers_lab  -J JOB_corr_bck_rnd_night  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=1-1000   --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 0; P.only_correct = 0; P.do_nighttime_LME = 1; P.do_day = 0; P.exp_bck_id = 4; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_rnd_bck'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_rnd_bck_night  ID $JOB_corr_rnd_bck_night
+
+
+export JOB_corr_rnd_eri_night=`sbatch --account=huybers_lab  -J JOB_corr_eri_rnd_night  -t 10080 -p huce_intel -n 1  --mem-per-cpu=10000  --array=1-1000  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "num=\$SLURM_ARRAY_TASK_ID; P.do_individual = 0; P.only_correct = 1; P.do_nighttime_LME = 1; P.do_day = 0; LME_Step_06_Corr_Ship_monthly_infer_day_night; quit;">>logs/log_SST_05_corr_rnd_eri'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_corr_rnd_eri_night  ID $JOB_corr_rnd_eri_night
+
+
+# -----------------------------------------------------------------------------------------
+# post-processing
+export JOB_parse_LME=`sbatch --account=huybers_lab  -J JOB_parse_LME  -t 10080 -p huce_intel -n 1 --mem=40000  --array=1  --dependency=afterok:${JOB_LME_day}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "do_day = 1;  LME_Step_06_post_LME;quit;">>logs/log_SST_06_post_LME'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_parse_LME  ID $JOB_parse_LME
+
+export JOB_parse_LME=`sbatch --account=huybers_lab  -J JOB_parse_LME  -t 10080 -p huce_intel -n 1 --mem=40000  --array=1  --dependency=afterok:${JOB_LME_night}  -o err --wrap='matlab -nosplash -nodesktop -nodisplay -r "do_day = 0;  LME_Step_06_post_LME;quit;">>logs/log_SST_06_post_LME'  | egrep -o -e "\b[0-9]+$"`
+echo JOB_parse_LME  ID $JOB_parse_LME
+
