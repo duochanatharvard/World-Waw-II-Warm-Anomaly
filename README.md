@@ -1,18 +1,18 @@
-# Correcting observational biases in sea-surface temperature observations removes anomalous warmth during World War II
+# Correcting Observational Biases in Sea-Surface Temperature Observations Removes Anomalous Warmth during World War II
 
 ![GitHub last commit](https://img.shields.io/github/last-commit/duochanatharvard/World-Waw-II-Warm-Anomaly)
 ![GitHub repo size](https://img.shields.io/github/repo-size/duochanatharvard/World-Waw-II-Warm-Anomaly)
 
 <br>
 
-[Matlab](https://www.mathworks.com/products/matlab.html) and shell scripts associated with the paper "Correcting observational biases in sea-surface temperature observations removes anomalous warmth during World War II" by Duo Chan and Peter Huybers.
+[Matlab](https://www.mathworks.com/products/matlab.html) and shell scripts associated with the paper "Correcting Observational Biases in Sea-Surface Temperature Observations Removes Anomalous Warmth during World War II" by Duo Chan and Peter Huybers.
 
 If you have issues implementing these scripts or identify any deficiencies, please contact Duo Chan (duochan@g.harvard.edu).
 
 <br>
 
 ## Associated SST Estimates
-Monthly SST estimates (R1--R5) at 5x5 degree resolution from 1850--2014 are provided in a single .netcdf file, **WWIIWA_monthly_SST_5x5_R1-R5_Chan_and_Huyber_2021_JC.nc**, in [this](https://doi.org/10.7910/DVN/RJLBOQ) Harvard Dataverse repository.  Please note that these estimates contain uncorrected SSTs (R1--R3) or only account for internal heterogeneity between different subsets of observations (R4--R5), whereas we have not yet adjusted for biases common to all SST measurements.  As a result, these estimates are suitable not for understanding long-term SST evolution.   
+Monthly SST estimates (R1--R5) at 5x5 degree resolution from 1850--2014 are provided in a single .netcdf file, **WWIIWA_monthly_SST_5x5_R1-R5_Chan_and_Huyber_2021_JC.nc**, in [this](https://doi.org/10.7910/DVN/RJLBOQ) Harvard Dataverse repository.  This file contains estimates based on uncorrected SSTs (R1--R3) and estimates that account for internal heterogeneity between different subsets of observations (R4--R5).  Please note that we have not yet adjusted for biases common to all SST measurements.  As a result, these estimates are not suitable for studying long-term SST evolution.   
 
 <br>
 
@@ -23,19 +23,19 @@ External dependency is the Matlab [m_map](https://www.eoas.ubc.ca/~rich/map.html
 
 Data downloaded in this step are,
 
-* **WWIIWA_statistics_for_[data source].mat**: key statistics, including monthly global mean SSTs, global mean SST variance from 1936-1950 at 5x5 degree resolution, and maps of SST anomalies during WWII and peace years around the war, for raw and groupwise adjusted ICOADS SSTs (R1-R5), existing SST estimates from other studies, CMIP5 and CMIP6 historical simulations, and CMIP5 pi-Control experiments.  These files are used in Figures 1, 5, 6, 7, 8, and S4.
+* **WWIIWA_statistics_for_[data source].mat**: key statistics, including monthly global mean SSTs, global mean SST variance from 1936-1950 at 5x5 degree resolution, and maps of SST anomalies during WWII and peace years around the war, for raw and groupwise adjusted ICOADS SSTs (R1-R5), existing SST estimates from other studies, CMIP5 and CMIP6 historical simulations, and CMIP5 pi-Control experiments.  These files are used in Figures 1, 5, 6, 7, 8, and S2.
 
 * **Stats_All_ships_groupwise_global_analysis_[all/day].mat** and **statistics_N_of_pairs_for_Fig_2b.mat**: numbers of measurements from individual groups and numbers of pairs between groups.  These files are used in Figure 2.
 
 * **DATA_Plot_DA&LME_[time].mat**: LME offsets and estimates of diurnal amplitude for individual groups averaged over periods before, during, and after the war.  These files are used in Figure 4.
 
-* **Corr_idv_[method]\_en_0_Ship_vs_Ship_[day/night]_\*\*\*.mat**: gridded raw and groupwise adjusted ICOADS SSTs for all ship-based measurements (ship), bucket-only (method 0), and ERI-only (method 1) SSTs, and for estimates using both day and nighttime (all), daytime-only (day), and nighttime-only measurements (night).  These files are used in Figures 6 and S2.
+* **Corr_idv_[method]\_en_0_Ship_vs_Ship_[day/night]_\*\*\*.mat**: gridded raw and groupwise adjusted ICOADS SSTs for all ship-based measurements (ship), bucket-only (method 0), and ERI-only (method 1) SSTs, and for estimates using both day and nighttime (all), daytime-only (day), and nighttime-only measurements (night).  These files are used in Figures 6 and S1.
 
-* **LME_\*\*\*.mat**: statistics of LME offsets, which are used in Table 1 and Figure S3.
+* **LME_\*\*\*.mat**: statistics of LME offsets, which are used in Table 1 and Figure A1.
 
-* **SUM_all_ships_DA_signals_1935_1949_Annual_relative_to_mean_SST.mat**: Diurnal SST anomalies for estimating diurnal cycle for deck 195, used in Figure S1.
+* **SUM_all_ships_DA_signals_1935_1949_Annual_relative_to_mean_SST.mat**: Diurnal SST anomalies for estimating diurnal cycle for deck 195, used in Figure A2.
 
-* **HadSST.4.0.0.0_median.nc**: HadSST4 median estimates, used to generate a least common mask (**common_minimum_mask.mat**) for calculating global mean SSTs.  This file is used in Figure S2.
+* **HadSST.4.0.0.0_median.nc**: HadSST4 median estimates, used to generate a least common mask (**common_minimum_mask.mat**) for calculating global mean SSTs.  This file is used in Figure S1.
 
 * **hybrid_36m.temp**: Cowtan SST estimates -- only the global mean time series is available.  This file is used in Figures 1 and 7 and Table 1.
 
@@ -47,7 +47,7 @@ Data downloaded in this step are,
 The full analysis, which starts from downloading and processing the ICOADS dataset, takes more computational resources and time.  Below, we provide step-by-step instruction.   
 
 #### Overview and Dependency
-The full analysis consists of three steps.  The first is downloading and processing the ICOADS dataset.  The second is the LME analysis, and the last is computing trends and other statistics for different SST estimates.
+The full analysis consists of three steps.  The first is downloading and processing the ICOADS dataset.  What follows is the LME analysis, and the last is computing trends and other statistics for different SST estimates.
 
 __Dependency__: [CD-Computation](https://github.com/duochanatharvard/CD_Computation), [CD-Figures](https://github.com/duochanatharvard/CDF_Figures), and [colormap-CD](https://github.com/duochanatharvard/colormap_CD).
 
@@ -57,7 +57,7 @@ Scripts for this step are in the [ICOADS pre-process](https://github.com/duochan
 
 Note that pre-processing scripts in [ICOADS pre-process](https://github.com/duochanatharvard/ICOADS_preprocess) infer SST methods following [Kennedy et al. (2012)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2010JD015220) when method metadata is not available.  In Chan and Huybers (2021), we do not infer SST methods but leave these methods missing and group these measurements separately.  Thus, we provide an updated script, i.e., [ICOADS_Step_02_pre_QC_not_infer_SST_methods.m](ICOADS_Step_02_pre_QC_not_infer_SST_methods.m), in folder ```0-Preprocess-ICOADS```.  Please replace **ICOADS_Step_02_pre_QC.m** with this updated script.
 
-__[System requirement]__ The raw ICOADS takes approximately 28GB of disk space, and the processed dataset takes about 48GB of disk space.  Intermediate steps may take another 100GB.  We highly recommend submitting multiple jobs to run this step in parallel.  We used 120 CPUs on the Harvard [Odyssey Cluster](https://www.rc.fas.harvard.edu/odyssey/), and it took about one day to finish this step.
+__[System requirement]__ The raw ICOADS takes approximately 28GB of disk space, and the processed dataset takes about 48GB of disk space.  Intermediate steps may take another 100GB.  We highly recommend submitting multiple jobs to run this step in parallel.  We used 120 CPUs on the Harvard [Odyssey Cluster](https://www.rc.fas.harvard.edu/), and it took about one day to finish this step.
 
 #### 1. Linear-Mixed-Effect Intercomparison
 
